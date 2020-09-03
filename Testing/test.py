@@ -1,5 +1,3 @@
-print("""You can print
-on Multiple 
-lines using
-triple
-quotes""")
+answer = 42
+print("The answer is " + str(answer) + ".")
+print(f"The answer is {answer}.")
