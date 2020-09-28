@@ -2,12 +2,6 @@
 
 import random
 
-total_player_miles_traveled = 0
-total_police_miles_traveled = -100
-engine_heat = 0
-gas_stops = 3
-gas_remaining = 17
-
 
 def main():
     """Printing Backstory and Instructions"""
@@ -18,13 +12,14 @@ def main():
     the car so they aren't looking for it and to escape the police.
     """)
     done = False
+
+    total_player_miles_traveled = 0
+    total_police_miles_traveled = -100
+    engine_heat = 0
+    gas_stops = 3
+    gas_remaining = 17
+
     while not done:
-        """All global variables"""
-        global total_player_miles_traveled
-        global total_police_miles_traveled
-        global gas_remaining
-        global engine_heat
-        global gas_stops
 
         """Options for the player"""
         print("""
@@ -37,6 +32,7 @@ def main():
         """)
         choice = input("What is your choice? ")
         choice = choice.lower()
+        oasis = random.randint(1, 20)
 
         if choice == "a":
             """Stop for gas"""
@@ -137,6 +133,13 @@ def main():
             print("The police were " + str(total_player_miles_traveled - total_police_miles_traveled) +
                   " miles behind you!")
             done = True
+
+        if oasis == 13:
+            """Random chance car show"""
+            engine_heat = 0
+            gas_remaining = 17
+            print("You found a car show where people help you escape the police")
+            print("Someone gave you some extra gas and help you cool down the engine")
 
 
 if __name__ == '__main__':
