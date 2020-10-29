@@ -8,7 +8,7 @@ def split_line(line):
     return re.findall('[A-Za-z]+(?:\'[A-Za-z]+)?',line)
 
 
-def read_file_dictionary():
+def main():
     """ Read in the file"""
 
     # Open the file
@@ -28,10 +28,9 @@ def read_file_dictionary():
     # Close the file so it doesn't bog down the system
     my_file.close()
 
-
-# --- Linear search ---
-def linear_search():
+    # --- Linear search ---
     """ Doing a linear search for misspelled words """
+    print("--- Linear Search ---")
 
     # Open the file
     alice = open("AliceInWonderLand200.txt")
@@ -47,17 +46,59 @@ def linear_search():
 
             current_list_position = 0
 
-            while current_list_position < len(word_list) and word != key:
+            while current_list_position < len(dictionary_list) and dictionary_list[current_list_position] != key:
+
                 current_list_position += 1
-            if current_list_position == len(word_list):
+
+                if current_list_position == len(dictionary_list):
+                    print("Possible misspelled word: " + word)
+
+    alice.close()
+
+    # --- Binary Search
+    print("--- Binary Search ---")
+
+    # Reopen file
+    my_file = open("dictionary.txt")
+    for line in my_file:
+        # Remove all the lines in between
+        line = line.strip()
+
+        # Add the items back into the list
+        dictionary_list.append(line)
+
+        # Close the file so it doesn't bog down the system
+    my_file.close()
+
+    alice = open("AliceInWonderLand200.txt")
+
+    for line in alice:
+        word_list = split_line(line)
+
+        for word in word_list:
+            """ Searching the line """
+
+            key = word.upper()
+            lower_bound = 0
+            upper_bound = len(dictionary_list) - 1
+            found = False
+
+            while lower_bound <= upper_bound and not found:
+
+                # Find the middle position
+                middle_pos = (lower_bound + upper_bound) // 2
+
+                if dictionary_list[middle_pos] < key:
+                    lower_bound = middle_pos + 1
+                elif dictionary_list[middle_pos] > key:
+                    upper_bound = middle_pos - 1
+                else:
+                    found = True
+
+            if not found:
                 print("Possible misspelled word: " + word)
 
 
-
-
-def main():
-    read_file_dictionary()
-    linear_search()
 
 
 if __name__ == '__main__':
