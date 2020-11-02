@@ -34,10 +34,13 @@ def main():
 
     # Open the file
     alice = open("AliceInWonderLand200.txt")
+    line_number = 0
 
     # Split the line in individual words
     for line in alice:
         word_list = split_line(line)
+
+        line_number += 1
 
         for word in word_list:
             """ Searching the line """
@@ -51,7 +54,7 @@ def main():
                 current_list_position += 1
 
                 if current_list_position == len(dictionary_list):
-                    print("Possible misspelled word: " + word)
+                    print("Line: " + str(line_number) + " Possible misspelled word: " + word)
 
     alice.close()
 
@@ -71,9 +74,11 @@ def main():
     my_file.close()
 
     alice = open("AliceInWonderLand200.txt")
+    line_number_binary = 0
 
     for line in alice:
         word_list = split_line(line)
+        line_number_binary += 1
 
         for word in word_list:
             """ Searching the line """
@@ -96,7 +101,7 @@ def main():
                     found = True
 
             if not found:
-                print("Possible misspelled word: " + word)
+                print("Line: " + str(line_number_binary) + " Possible misspelled word: " + word)
 
 
 

@@ -1,129 +1,115 @@
-"""
-Load a map stored in csv format, as exported by the program 'Tiled.'
-
-Artwork from: http://kenney.nl
-Tiled available from: http://www.mapeditor.org/
-"""
 import arcade
 
-SPRITE_SCALING = 0.5
+WIDTH = 40
+HEIGHT = 40
+MARGIN = 10
+ROW_COUNT = 10
+COLUMN_COUNT = 10
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
-# How many pixels to keep as a minimum margin between the character
-# and the edge of the screen.
-VIEWPORT_MARGIN = 40
-RIGHT_MARGIN = 150
-
-TILE_SIZE = 128
-SCALED_TILE_SIZE = TILE_SIZE * SPRITE_SCALING
-MAP_HEIGHT = 7
-
-# Physics
-MOVEMENT_SPEED = 5
-JUMP_SPEED = 14
-GRAVITY = 0.5
+SCREEN_HEIGHT = (HEIGHT * ROW_COUNT) + ((ROW_COUNT + 1) * MARGIN)
+SCREEN_WIDTH = (WIDTH * COLUMN_COUNT) + ((COLUMN_COUNT + 1) * MARGIN)
 
 
-class MyWindow(arcade.Window):
-    """ Main application class. """
+class MyGame(arcade.Window):
+    """
+    Main application class.
+    """
 
-    def __init__(self):
-        """
-        Initializer
-        """
-        # Call the parent class
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT)
+    def __init__(self, width, height):
+        super().__init__(width, height)
 
-        # Sprite lists
-        self.player_list = None
-        self.wall_list = None
+        arcade.set_background_color(arcade.color.WHITE)
 
-        # Set up the player
-        self.player_sprite = None
+        self.grid = []
+        for row in range(ROW_COUNT):
+            self.grid.append([])
+            for column in range(COLUMN_COUNT):
+                self.grid[row].append(0)
 
-        # Physics engine
-        self.physics_engine = None
-
-        # Used for scrolling map
-        self.view_left = 0
-        self.view_bottom = 0
-
-    def setup(self):
-        """ Set up the game and initialize the variables. """
-
-        # Sprite lists
-        self.player_list = arcade.SpriteList()
-        self.wall_list = arcade.SpriteList()
-
-        # Set up the player
-        self.player_sprite = arcade.Sprite("character.png", SPRITE_SCALING)
-
-        # Starting position of the player
-        self.player_sprite.center_x = 90
-        self.player_sprite.center_y = 270
-        self.player_list.append(self.player_sprite)
-
-        map_name = "test.mpa.tmx"
-        platform_layer_name = "Walls"
-        coin_layer_name = "Coins"
-
-        my_map = arcade.tilemap(map_name)
-        self.wall_list = arcade.tilemap.process_layer(my_map)
-
-        # Set the background color
-        arcade.set_background_color(arcade.color.AMAZON)
-
-        # Set the view port boundaries
-        # These numbers set where we have 'scrolled' to.
-        self.view_left = 0
-        self.view_bottom = 0
+        for row in self.grid:
+            print(row)
 
     def on_draw(self):
         """
         Render the screen.
         """
 
-        # This command has to happen before we start drawing
         arcade.start_render()
 
-        # Draw all the sprites.
-        self.wall_list.draw()
-        self.player_list.draw()
+        # Draw a rectangle
+        for row in range(ROW_COUNT):
+            for column in range(COLUMN_COUNT):
 
-    def on_key_press(self, key, modifiers):
-        """
-        Called whenever the mouse moves.
-        """
-        if key == arcade.key.UP:
-            # This line below is new. It checks to make sure there is a platform underneath
-            # the player. Because you can't jump if there isn't ground beneath your feet.
-            if self.physics_engine.can_jump():
-                self.player_sprite.change_y = JUMP_SPEED
-        elif key == arcade.key.LEFT:
-            self.player_sprite.change_x = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT:
-            self.player_sprite.change_x = MOVEMENT_SPEED
+                if self.grid[row][column] == 0:
+                    color = arcade.color.BLACK
+                else:
+                    color = arcade.color.DARK_MAGENTA
 
-    def on_key_release(self, key, modifiers):
+                arcade.draw_rectangle_filled((WIDTH / 2) + (column * (WIDTH + MARGIN)) + MARGIN, (HEIGHT / 2) +
+                                            (row * (HEIGHT + MARGIN) + MARGIN), WIDTH, HEIGHT, color)
+
+    def on_mouse_press(self, x, y, button, key_modifiers):
         """
         Called when the user presses a mouse button.
         """
-        if key == arcade.key.LEFT or key == arcade.key.RIGHT:
-            self.player_sprite.change_x = 0
+        grid_x = x // (WIDTH + MARGIN)
+        grid_y = y // (HEIGHT + MARGIN)
+        print(grid_x, grid_y)
 
-    def update(self, delta_time):
-        """ Movement and game logic """
+        if self.grid[grid_y][grid_x] == 0:
+            self.grid[grid_y][grid_x] = 1
 
-        self.physics_engine.update()
+            if grid_y - 1 > - 1 and self.grid[grid_y - 1][grid_x] == 0:
+                self.grid[grid_y - 1][grid_x] = 1
+            elif grid_y - 1 > - 1 and self.grid[grid_y - 1][grid_x] == 1:
+                self.grid[grid_y - 1][grid_x] = 0
+
+            if (grid_y + 1) < 10 and self.grid[grid_y + 1][grid_x] == 0:
+                self.grid[grid_y + 1][grid_x] = 1
+            elif (grid_y + 1) < 10 and self.grid[grid_y + 1][grid_x] == 1:
+                self.grid[grid_y + 1][grid_x] = 0
+
+            if  (grid_x + 1) < 10 and self.grid[grid_y][grid_x + 1] == 0:
+                self.grid[grid_y][grid_x + 1] = 1
+            elif (grid_x + 1) < 10 and self.grid[grid_y][grid_x + 1] == 1:
+                self.grid[grid_y][grid_x + 1] = 0
+
+            if grid_x - 1 > - 1 and self.grid[grid_y][grid_x - 1] == 0:
+                self.grid[grid_y][grid_x - 1] = 1
+            elif grid_x - 1 > - 1 and self.grid[grid_y][grid_x - 1] == 1:
+                self.grid[grid_y][grid_x - 1] = 0
+
+        elif self.grid[grid_y][grid_x] == 1:
+            self.grid[grid_y][grid_x] = 0
+
+            if self.grid[grid_y - 1][grid_x] == 0 and grid_y - 1 > - 1:
+                self.grid[grid_y - 1][grid_x] = 1
+            elif self.grid[grid_y - 1][grid_x] == 1 and grid_y - 1 > - 1:
+                self.grid[grid_y - 1][grid_x] = 0
+
+            if (grid_y + 1) < 10 and self.grid[grid_y + 1][grid_x] == 0:
+                self.grid[grid_y + 1][grid_x] = 1
+            elif (grid_y + 1) < 10 and self.grid[grid_y + 1][grid_x] == 1:
+                self.grid[grid_y + 1][grid_x] = 0
+
+            if  (grid_x + 1) < 10 and self.grid[grid_y][grid_x + 1] == 0:
+                self.grid[grid_y][grid_x + 1] = 1
+            elif (grid_x + 1) < 10 and self.grid[grid_y][grid_x + 1] == 1:
+                self.grid[grid_y][grid_x + 1] = 0
+
+            if self.grid[grid_y][grid_x - 1] == 0 and grid_x - 1 > - 1:
+                self.grid[grid_y][grid_x - 1] = 1
+            elif self.grid[grid_y][grid_x - 1] == 1 and grid_x - 1 > - 1:
+                self.grid[grid_y][grid_x - 1] = 0
 
 
 def main():
-    window = MyWindow()
-    window.setup()
 
+    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.run()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
+
+
