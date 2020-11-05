@@ -1,17 +1,6 @@
-# Selection Sort
-def selection_sort(my_list):
 
-    for current_pos in range(len(my_list)):
-        min_pos = current_pos
-        for scan_pos in range(current_pos + 1, len(my_list)):
-            if my_list[scan_pos] < my_list[min_pos]:
-                min_pos = scan_pos
+def my_function(x, y):
+    z = ((1/3) * y**3) - (y**2)-(15 * y) + x**3 -(3*x)+25
+    print(z)
 
-        temp = my_list[min_pos]
-        my_list[min_pos] = my_list[current_pos]
-        my_list[current_pos] = temp
-
-
-my_list = [15, 57, 14, 33, 72, 79, 26, 56, 42, 40]
-selection_sort(my_list)
-print(my_list)
+my_function(1, -3)
