@@ -1,6 +1,10 @@
-
 def my_function(x, y):
-    z = ((1/3) * y**3) - (y**2)-(15 * y) + x**3 -(3*x)+25
-    print(z)
+    result = (-3 * x**2) + (1800 * x) - (2 * y**2) + (2 * x * y)
+    print(result)
 
-my_function(1, -3)
+
+my_function(0, 0)
+my_function(120, 0)
+my_function(120, 150)
+my_function(0, 150)
+my_function(120, 60)
