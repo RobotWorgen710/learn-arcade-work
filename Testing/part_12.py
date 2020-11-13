@@ -34,8 +34,6 @@ SPAWN_Y = 224
 RIGHT_FACING = 0
 LEFT_FACING = 1
 
-LEVEL = 1
-
 
 def load_texture_pair(filename):
     """ Load both directions of a image"""
@@ -120,17 +118,15 @@ class InstructionView(arcade.View):
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         game_view = GameView()
-        game_view.setup(LEVEL)
+        game_view.setup()
         self.window.show_view(game_view)
 
 
 class GameOverView(arcade.View):
 
-    def __init__(self, score):
+    def __init__(self):
 
         super().__init__()
-        self.score = score
-        self.window.set_mouse_visible(True)
 
     def on_show(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
@@ -141,12 +137,10 @@ class GameOverView(arcade.View):
         arcade.start_render()
         arcade.draw_text("Game Over", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, arcade.color.RED, 70, anchor_x="center")
         arcade.draw_text("Click to Restart", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 8, arcade.color.RED, 30, anchor_x="center")
-        arcade.draw_text("You score was " + str(self.score), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 70,
-                         arcade.color.RED, 50, anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         game_view = GameView()
-        game_view.setup(LEVEL)
+        game_view.setup()
         self.window.show_view(game_view)
 
 
@@ -163,7 +157,7 @@ class GameView(arcade.View):
         # Sprite lists
         self.player_list = None
         self.wall_list = None
-        self.enemies_list = None
+        self.spike_list = None
         self.coin_list = None
         self.score = None
 
@@ -181,16 +175,13 @@ class GameView(arcade.View):
         self.left_pressed = False
         self.right_pressed = False
 
-        # Level
-        self.level = 2
-
-    def setup(self, level):
+    def setup(self):
         """ Set up the game and initialize the variables. """
 
         # Sprite lists
         self.player_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
-        self.enemies_list = arcade.SpriteList()
+        self.spike_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
 
         # Set up the player
@@ -214,11 +205,11 @@ class GameView(arcade.View):
         self.next_level_sound = arcade.load_sound("secret2.wav")
 
         # --- Load in the map ---
-        map_name = f"Level{self.level}.tmx"
+        map_name = "Level1.tmx"
 
         # Different Layers
         platforms_layer = 'Platforms'
-        enemies_layer = 'Enemies'
+        spike_layer = 'Spikes'
         coin_layer = 'Coins'
 
         my_map = arcade.tilemap.read_tmx(map_name)
@@ -226,7 +217,7 @@ class GameView(arcade.View):
         # --- Layer Lists ---
         self.wall_list = arcade.tilemap.process_layer(my_map, platforms_layer, PLATFORM_SCALING)
 
-        self.enemies_list = arcade.tilemap.process_layer(my_map, enemies_layer, PLATFORM_SCALING)
+        self.spike_list = arcade.tilemap.process_layer(my_map, spike_layer, PLATFORM_SCALING)
 
         self.coin_list = arcade.tilemap.process_layer(my_map, coin_layer, PLATFORM_SCALING)
 
@@ -257,7 +248,7 @@ class GameView(arcade.View):
         self.wall_list.draw()
         self.player_list.draw()
         self.coin_list.draw()
-        self.enemies_list.draw()
+        self.spike_list.draw()
 
         arcade.draw_text("Score: " + str(self.score), self.view_left + 20, self.view_bottom + 60, arcade.color.BLUE, 24)
         arcade.draw_text("Lives: " + str(self.lives), self.view_left + 20, self.view_bottom + 30, arcade.color.BLUE, 24)
@@ -300,20 +291,6 @@ class GameView(arcade.View):
             self.player_sprite.can_jump = True
 
         self.player_list.update_animation(delta_time)
-
-        # See if the player moves on the the next level
-        if len(self.coin_list) == 1:
-
-            # Advance to the next level
-            self.level += 1
-
-            # Load the next Level
-            self.setup(self.level)
-
-            # Set the camera to the start
-            self.view_left = 0
-            self.view_bottom = 0
-
         # --- Manage Scrolling ---
 
         # Track if we need to change the view port
@@ -357,10 +334,9 @@ class GameView(arcade.View):
             coin.remove_from_sprite_lists()
             self.score += 1
             arcade.play_sound(self.coin_sound)
-            print(len(self.coin_list))
 
-        enemies_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.enemies_list)
-        for enemy in enemies_hit_list:
+        spike_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.spike_list)
+        for spike in spike_hit_list:
             self.player_sprite.center_x = SPAWN_X
             self.player_sprite.center_y = SPAWN_Y
             self.lives -= 1
@@ -378,7 +354,7 @@ class GameView(arcade.View):
         self.player_sprite.update()
 
         if self.lives < 1:
-            view = GameOverView(self.score)
+            view = GameOverView()
             self.window.show_view(view)
 
 
