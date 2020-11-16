@@ -117,12 +117,14 @@ class InstructionView(arcade.View):
 
     def on_draw(self):
         arcade.start_render()
-        arcade.draw_text("Instructions", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100, arcade.color.WHITE, 50, anchor_x="center")
+        arcade.draw_text("Instructions", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100, arcade.color.WHITE, 50,
+                         anchor_x="center")
         arcade.draw_text("Collect all the coins to advance to the next level", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 200,
                          arcade.color.WHITE, 40, anchor_x="center")
         arcade.draw_text("You lose lives when you hit spikes", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 300,
                          arcade.color.WHITE, 40, anchor_x="center")
-        arcade.draw_text("Click to Play", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 8), arcade.color.WHITE, 30, anchor_x="center")
+        arcade.draw_text("Click to Play", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 8), arcade.color.WHITE, 30,
+                         anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         game_view = GameView()
@@ -146,7 +148,8 @@ class GameOverView(arcade.View):
     def on_draw(self):
         arcade.start_render()
         arcade.draw_text("Game Over", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, arcade.color.RED, 70, anchor_x="center")
-        arcade.draw_text("Click to Restart", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 8, arcade.color.RED, 30, anchor_x="center")
+        arcade.draw_text("Click to Restart", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 8, arcade.color.RED, 30,
+                         anchor_x="center")
         arcade.draw_text("You score was " + str(self.score), SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 70,
                          arcade.color.RED, 50, anchor_x="center")
 
@@ -163,22 +166,24 @@ class GameWinView(arcade.View):
         self.window.set_mouse_visible(True)
 
     def on_show(self):
-        arcade.set_background_color(arcade.csscolor.GOLD)
+        arcade.set_background_color([84, 2, 2])
 
         arcade.set_viewport(0, SCREEN_WIDTH - 1, 0, SCREEN_HEIGHT - 1)
 
     def on_draw(self):
         arcade.start_render()
-        arcade.draw_text("Congratulations", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, arcade.color.WHITE, 70,
-                         anchor_x="center")
-        arcade.draw_text("You Won!", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 70, arcade.color.WHITE, 70,
-                         anchor_x="center")
-        arcade.draw_text("Click to play again", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 8, arcade.color.WHITE, 40,
+
+        arcade.draw_text("Congratulations", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                         arcade.color.GOLD, 70, anchor_x="center")
+        arcade.draw_text("You Win!", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 100,
+                         arcade.color.GOLD, 70, anchor_x="center")
+        arcade.draw_text("Click to play again", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 8), arcade.color.GOLD, 30,
                          anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        instruction_view = InstructionView()
-        self.window.show_view(instruction_view)
+        game_view = GameView()
+        game_view.setup(LEVEL)
+        self.window.show_view(game_view)
 
 
 class GameView(arcade.View):
@@ -196,6 +201,7 @@ class GameView(arcade.View):
         self.wall_list = None
         self.enemies_list = None
         self.coin_list = None
+        self.moving_platform_list = None
 
         self.score = None
         self.lives = None
@@ -230,6 +236,7 @@ class GameView(arcade.View):
         self.wall_list = arcade.SpriteList()
         self.enemies_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
+        self.moving_platform_list = arcade.SpriteList()
 
         # Set up the player
         self.player_sprite = PlayerCharacter()
@@ -258,14 +265,23 @@ class GameView(arcade.View):
         platforms_layer = 'Platforms'
         enemies_layer = 'Enemies'
         coin_layer = 'Coins'
+        moving_platform_layer = 'Moving Platforms'
 
         my_map = arcade.tilemap.read_tmx(map_name)
 
         # --- Layer Lists ---
-        self.wall_list = arcade.tilemap.process_layer(my_map, platforms_layer, PLATFORM_SCALING)
 
+        # Platforms layers
+        self.wall_list = arcade.tilemap.process_layer(my_map, platforms_layer, PLATFORM_SCALING)
+        self.moving_platform_list = arcade.tilemap.process_layer(my_map, moving_platform_layer, PLATFORM_SCALING)
+        for sprite in self.moving_platform_list:
+            self.wall_list.append(sprite)
+            sprite.change_x = -2
+
+        # Enemy layer
         self.enemies_list = arcade.tilemap.process_layer(my_map, enemies_layer, PLATFORM_SCALING)
 
+        # Coins layer
         self.coin_list = arcade.tilemap.process_layer(my_map, coin_layer, PLATFORM_SCALING)
 
         # Create out platformer physics engine with gravity
@@ -329,6 +345,8 @@ class GameView(arcade.View):
 
         self.physics_engine.update()
 
+        self.wall_list.update()
+
         # Update Animation
         if self.physics_engine.can_jump():
             self.player_sprite.can_jump = False
@@ -341,18 +359,28 @@ class GameView(arcade.View):
         if len(self.coin_list) == 0:
 
             # Advance to the next level
-            if self.level < 3:
+            if self.level < 2:
                 self.level += 1
+
+                # Load the next Level
+                self.setup(self.level)
+
+                # Set the camera to the start
+                self.view_left = 0
+                self.view_bottom = 0
             else:
                 view = GameWinView()
                 self.window.show_view(view)
 
-            # Load the next Level
-            self.setup(self.level)
+        for wall in self.moving_platform_list:
 
-            # Set the camera to the start
-            self.view_left = 0
-            self.view_bottom = 0
+            if self.moving_platform_list[0].left < 704:
+                for sprite in self.moving_platform_list:
+                    sprite.change_x *= -1
+
+            if self.moving_platform_list[2].right > 2496:
+                for sprite in self.moving_platform_list:
+                    sprite.change_x *= -1
 
         # --- Manage Scrolling ---
 
