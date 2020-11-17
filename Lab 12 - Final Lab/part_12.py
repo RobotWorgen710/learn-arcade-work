@@ -117,6 +117,7 @@ class InstructionView(arcade.View):
 
     def on_draw(self):
         arcade.start_render()
+
         arcade.draw_text("Instructions", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100, arcade.color.WHITE, 50,
                          anchor_x="center")
         arcade.draw_text("Collect all the coins to advance to the next level", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 200,
@@ -168,10 +169,10 @@ class GameWinView(arcade.View):
     def on_show(self):
         arcade.set_background_color([84, 2, 2])
 
-        arcade.set_viewport(0, SCREEN_WIDTH - 1, 0, SCREEN_HEIGHT - 1)
-
     def on_draw(self):
         arcade.start_render()
+
+        arcade.set_viewport(0, SCREEN_WIDTH - 1, 0, SCREEN_HEIGHT - 1)
 
         arcade.draw_text("Congratulations", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                          arcade.color.GOLD, 70, anchor_x="center")
@@ -202,6 +203,7 @@ class GameView(arcade.View):
         self.enemies_list = None
         self.coin_list = None
         self.moving_platform_list = None
+        self.moving_enemies_list = None
 
         self.score = None
         self.lives = None
@@ -237,6 +239,7 @@ class GameView(arcade.View):
         self.enemies_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.moving_platform_list = arcade.SpriteList()
+        self.moving_enemies_list = arcade.SpriteList()
 
         # Set up the player
         self.player_sprite = PlayerCharacter()
@@ -266,6 +269,7 @@ class GameView(arcade.View):
         enemies_layer = 'Enemies'
         coin_layer = 'Coins'
         moving_platform_layer = 'Moving Platforms'
+        moving_enemies_layer = 'Moving Enemies'
 
         my_map = arcade.tilemap.read_tmx(map_name)
 
@@ -274,12 +278,16 @@ class GameView(arcade.View):
         # Platforms layers
         self.wall_list = arcade.tilemap.process_layer(my_map, platforms_layer, PLATFORM_SCALING)
         self.moving_platform_list = arcade.tilemap.process_layer(my_map, moving_platform_layer, PLATFORM_SCALING)
-        for sprite in self.moving_platform_list:
-            self.wall_list.append(sprite)
-            sprite.change_x = -2
+        for block in self.moving_platform_list:
+            self.wall_list.append(block)
+            block.change_x = -3
 
-        # Enemy layer
+        # Enemies layer
         self.enemies_list = arcade.tilemap.process_layer(my_map, enemies_layer, PLATFORM_SCALING)
+        self.moving_enemies_list = arcade.tilemap.process_layer(my_map, moving_enemies_layer, PLATFORM_SCALING)
+        for sprite in self.moving_enemies_list:
+            self.enemies_list.append(sprite)
+            sprite.change_x = -5
 
         # Coins layer
         self.coin_list = arcade.tilemap.process_layer(my_map, coin_layer, PLATFORM_SCALING)
@@ -347,6 +355,8 @@ class GameView(arcade.View):
 
         self.wall_list.update()
 
+        self.moving_enemies_list.update()
+
         # Update Animation
         if self.physics_engine.can_jump():
             self.player_sprite.can_jump = False
@@ -374,13 +384,21 @@ class GameView(arcade.View):
 
         for wall in self.moving_platform_list:
 
-            if self.moving_platform_list[0].left < 704:
+            if self.moving_platform_list[0].left < 768:
                 for sprite in self.moving_platform_list:
                     sprite.change_x *= -1
 
             if self.moving_platform_list[2].right > 2496:
                 for sprite in self.moving_platform_list:
                     sprite.change_x *= -1
+
+        for enemy in self.moving_enemies_list:
+
+            if enemy.left < 128:
+                enemy.change_x *= -1
+
+            if enemy.right > 896:
+                enemy.change_x *= -1
 
         # --- Manage Scrolling ---
 
@@ -457,4 +475,5 @@ def main():
     arcade.run()
 
 
-main()
+if __name__ == '__main__':
+    main()

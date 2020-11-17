@@ -232,9 +232,7 @@ class GameView(arcade.View):
 
         # Create out platformer physics engine with gravity
         self.physics_engine = arcade.PhysicsEnginePlatformer(self.player_sprite,
-
                                                              self.wall_list,
-
                                                              gravity_constant=GRAVITY)
 
         if my_map.background_color:
@@ -302,7 +300,7 @@ class GameView(arcade.View):
         self.player_list.update_animation(delta_time)
 
         # See if the player moves on the the next level
-        if len(self.coin_list) == 1:
+        if len(self.coin_list) == 0:
 
             # Advance to the next level
             self.level += 1
