@@ -22,10 +22,10 @@ SCALED_TILE_SIZE = TILE_SIZE * SPRITE_SCALING
 MAP_HEIGHT = 7
 
 # Physics
-MOVEMENT_SPEED = 6
+MOVEMENT_SPEED = 4
 DEAD_ZONE = 0.2
-JUMP_SPEED = 16
-GRAVITY = .95
+JUMP_SPEED = 26
+GRAVITY = 1.3
 
 # Spawning Location
 SPAWN_X = 224
@@ -36,6 +36,7 @@ RIGHT_FACING = 0
 LEFT_FACING = 1
 
 LEVEL = 1
+SCORE = 0
 
 
 def load_texture_pair(filename):
@@ -83,8 +84,14 @@ class PlayerCharacter(arcade.Sprite):
         if controllers:
             self.joystick = controllers[0]
             self.joystick.open()
+
+            self.joystick.push_handlers(self)
         else:
             self.joystick = None
+
+    def on_joybutton_press(self, joystick, button):
+        print("Button")
+        self.change_y = JUMP_SPEED
 
     def update_animation(self, delta_time: float = 1/60):
 
@@ -117,11 +124,6 @@ class PlayerCharacter(arcade.Sprite):
                 self.change_x = 0
         self.center_x += self.change_x
 
-    def on_joybutton_press(self, joystick, button):
-        print("Button")
-        self.change_y = 20
-
-
 
 class InstructionView(arcade.View):
 
@@ -129,6 +131,7 @@ class InstructionView(arcade.View):
 
         super().__init__()
         self.window.set_mouse_visible(True)
+        self.score = 0
 
     def on_show(self):
         arcade.set_background_color(arcade.color.BLACK)
@@ -152,7 +155,7 @@ class InstructionView(arcade.View):
                          anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        game_view = GameView()
+        game_view = GameView(self.score)
         game_view.setup(LEVEL)
         self.window.show_view(game_view)
 
@@ -212,9 +215,10 @@ class GameWinView(arcade.View):
 
 class LevelCompletedView(arcade.View):
 
-    def __init__(self, level):
+    def __init__(self, level, score):
         super().__init__()
         self.level = level + 1
+        self.score = score
         self.window.set_mouse_visible(True)
 
     def on_show(self):
@@ -227,9 +231,11 @@ class LevelCompletedView(arcade.View):
 
         arcade.draw_text(f"You completed level {self.level - 1}", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, arcade.color.GOLD
                          , 60, anchor_x="center")
+        arcade.draw_text(f"Click to continue", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 8, arcade.color.GOLD, 30,
+                         anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        game_view = GameView()
+        game_view = GameView(self.score)
         game_view.setup(self.level)
         self.window.show_view(game_view)
 
@@ -237,7 +243,7 @@ class LevelCompletedView(arcade.View):
 class GameView(arcade.View):
     """ Main application class. """
 
-    def __init__(self):
+    def __init__(self, score):
         """
         Initializer
         """
@@ -278,6 +284,9 @@ class GameView(arcade.View):
         # Level
         self.level = 1
 
+        # Score
+        self.score = score
+
     def setup(self, level):
         """ Set up the game and initialize the variables. """
 
@@ -298,7 +307,6 @@ class GameView(arcade.View):
         self.player_list.append(self.player_sprite)
 
         # Setting up score and other constants
-        self.score = 0
         self.lives = 10
 
         # Making mouse invisible
@@ -377,7 +385,7 @@ class GameView(arcade.View):
         """
         Called whenever the mouse moves.
         """
-        if key == arcade.key.UP or key == arcade.key.W or PlayerCharacter().change_y > 0:
+        if key == arcade.key.UP or key == arcade.key.W:
             # This line below is new. It checks to make sure there is a platform underneath
             # the player. Because you can't jump if there isn't ground beneath your feet.
 
@@ -385,7 +393,7 @@ class GameView(arcade.View):
 
                 self.player_sprite.change_y = JUMP_SPEED
 
-        if key == arcade.key.RIGHT or key == arcade.key.D or key == arcade.get_game_controllers():
+        if key == arcade.key.RIGHT or key == arcade.key.D:
             self.right_pressed = True
         elif key == arcade.key.LEFT or key == arcade.key.A:
             self.left_pressed = True
@@ -398,9 +406,6 @@ class GameView(arcade.View):
             self.right_pressed = False
         elif key == arcade.key.LEFT or key == arcade.key.A:
             self.left_pressed = False
-
-    def on_joybutton_press(self, joystick, button):
-        print("Button")
 
     def update(self, delta_time):
         """ Movement and game logic """
@@ -436,9 +441,9 @@ class GameView(arcade.View):
         if len(self.coin_list) == 0:
 
             # Advance to the next level
-            if self.level < 2:
+            if self.level < 3:
                 # Show a Level Complete Screen
-                view = LevelCompletedView(self.level)
+                view = LevelCompletedView(self.level, self.score)
                 self.window.show_view(view)
             else:
                 view = GameWinView()
