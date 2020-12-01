@@ -151,7 +151,13 @@ class InstructionView(arcade.View):
                          arcade.color.WHITE, 40, anchor_x="center")
         arcade.draw_text("Make it through all three levels to win", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 500,
                          arcade.color.WHITE, 40, anchor_x="center")
-        arcade.draw_text("Click to Play", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 8), arcade.color.WHITE, 30,
+        arcade.draw_text("You will get 10 lives for each of the 3 levels", SCREEN_WIDTH / 2,
+                         SCREEN_HEIGHT - 600, arcade.color.WHITE, 40, anchor_x="center")
+        arcade.draw_text("Keyboard: WASD or arrow keys to move and space bar to jump", SCREEN_WIDTH / 2,
+                         SCREEN_HEIGHT - 700, arcade.color.WHITE, 40, anchor_x="center")
+        arcade.draw_text("Controller: Left stick to move and X or A to jump", SCREEN_WIDTH / 2,
+                         SCREEN_HEIGHT - 800, arcade.color.WHITE, 40, anchor_x="center")
+        arcade.draw_text("Click to Play", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 8) - 75, arcade.color.WHITE, 30,
                          anchor_x="center")
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
@@ -346,7 +352,7 @@ class GameView(arcade.View):
         self.moving_enemies_list = arcade.tilemap.process_layer(my_map, moving_enemies_layer, PLATFORM_SCALING)
         for sprite in self.moving_enemies_list:
             self.enemies_list.append(sprite)
-            sprite.change_x = -5
+            sprite.change_x = -10
 
         # Coins layer
         self.coin_list = arcade.tilemap.process_layer(my_map, coin_layer, PLATFORM_SCALING)
